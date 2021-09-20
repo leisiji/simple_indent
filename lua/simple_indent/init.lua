@@ -109,7 +109,7 @@ local function enable_indent_guides_()
 end
 
 function M.enable()
-  if fn.index(ex, vim.bo.filetype) ~= -1 then
+  if fn.index(ex, vim.bo.filetype) == -1 then
     return
   end
   enable_indent_guides_()
