@@ -109,7 +109,7 @@ local function enable_indent_guides_()
 end
 
 function M.enable()
-  if fn.index(ex, vim.bo.filetype) == -1 then
+  if fn.index(ex, vim.bo.filetype) ~= -1 then
     return
   end
   enable_indent_guides_()
@@ -127,6 +127,11 @@ function M.disable()
 end
 
 function M.refresh()
+  -- Some plugin may not set &ft at first, remove it later
+  if fn.index(ex, vim.bo.filetype) ~= -1 then
+    vim.cmd[[au! simple_indent * <buffer>]]
+    return
+  end
   clear(0, ns, 0, -1)
   enable_indent_guides_()
 end
