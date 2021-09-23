@@ -5,6 +5,7 @@ local fn = vim.fn
 local clear = vim.api.nvim_buf_clear_namespace
 local M = {}
 local ex = {'', 'help', 'fzf', 'FTerm', 'NvimTree'}
+local refresh_timer = nil
 
 local function init_hi()
   local hi = fn.synIDtrans(fn.hlID("Whitespace"))
@@ -137,9 +138,16 @@ function M.refresh()
 end
 
 function M.refresh_line()
-  local ln = fn.line('.')
-  clear(0, ns, ln - 1, ln)
-  create_line_mark(ln - 1, ln)
+  if refresh_timer ~= nil then
+    vim.loop.timer_stop(refresh_timer)
+    refresh_timer = nil
+  end
+
+  refresh_timer = vim.defer_fn(function ()
+    local ln = fn.line('.')
+    clear(0, ns, ln - 1, ln)
+    create_line_mark(ln - 1, ln)
+  end, 300)
 end
 
 init_hi()
