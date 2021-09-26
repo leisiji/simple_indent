@@ -6,6 +6,7 @@ local clear = vim.api.nvim_buf_clear_namespace
 local M = {}
 local ex = {'', 'help', 'fzf', 'FTerm', 'NvimTree'}
 local refresh_timer = nil
+local max_line = 10000
 
 local function init_hi()
   local hi = fn.synIDtrans(fn.hlID("Whitespace"))
@@ -109,8 +110,15 @@ local function enable_indent_guides_()
   create_line_mark(0, -1)
 end
 
+local function disabled()
+  if fn.index(ex, vim.bo.filetype) ~= -1 or fn.line('$') > max_line then
+    return true
+  end
+  return false
+end
+
 function M.enable()
-  if fn.index(ex, vim.bo.filetype) ~= -1 then
+  if disabled() then
     return
   end
   enable_indent_guides_()
@@ -129,10 +137,11 @@ end
 
 function M.refresh()
   -- Some plugin may not set &ft at first, remove it later
-  if fn.index(ex, vim.bo.filetype) ~= -1 then
+  if disabled() then
     vim.cmd[[au! simple_indent * <buffer>]]
     return
   end
+
   clear(0, ns, 0, -1)
   enable_indent_guides_()
 end
