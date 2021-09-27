@@ -65,6 +65,11 @@ local function create_mark(idt_size, ln, line, guide)
   elseif lead_tab == -1 then -- tab only line
     return
   else
+    for i = 1, idt_size, 1 do
+      if get_char(line, i) ~= ' ' then
+        return
+      end
+    end
     st = idt_size + 1
   end
 
