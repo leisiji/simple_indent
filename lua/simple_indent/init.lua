@@ -128,24 +128,16 @@ function M.enable()
     return
   end
   enable_indent_guides_()
-  vim.cmd[[
-    augroup simple_indent
-      au! * <buffer>
-      au TextChanged * lua require('simple_indent').refresh()
-      au TextChangedI * lua require('simple_indent').refresh_lines()
-      au InsertLeave * let g:simple_indent_last_line = 0
-    augroup END
-  ]]
 end
 
 function M.disable()
   clear(0, ns, 0, -1)
+  vim.cmd[[augroup! simple_indent]]
 end
 
 function M.refresh()
   -- Some plugin may not set &ft at first, remove it later
   if disabled() then
-    vim.cmd[[au! simple_indent * <buffer>]]
     return
   end
 
@@ -158,7 +150,6 @@ function M.refresh_lines()
     vim.loop.timer_stop(refresh_timer)
     refresh_timer = nil
   end
-
   refresh_timer = vim.defer_fn(function ()
     local ln = fn.line('.')
     local start = ln - 1
