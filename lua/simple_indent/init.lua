@@ -129,10 +129,10 @@ function M.enable()
   end
   enable_indent_guides_()
   vim.cmd[[
-    augroup simple_indent_inner
-        au!
-        au TextChanged * lua require('simple_indent').refresh()
-        au TextChangedI * lua require('simple_indent').refresh_lines()
+    augroup simple_indent_buffer
+        au! * <buffer>
+        au TextChanged <buffer> lua require('simple_indent').refresh()
+        au TextChangedI <buffer> lua require('simple_indent').refresh_lines()
     augroup END
   ]]
 end
