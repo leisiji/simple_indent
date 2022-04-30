@@ -126,16 +126,18 @@ function M.enable()
     return
   end
   enable_indent_guides_()
-  local group = "simple_indent"
+  local group = "simple_indent_buffer"
   local a = vim.api
+  local bufnr = a.nvim_get_current_buf()
+  a.nvim_clear_autocmds({group = group, buffer = bufnr })
   a.nvim_create_autocmd({ "TextChanged" }, {
     callback = require("simple_indent").refresh,
-    buffer = a.nvim_get_current_buf(),
+    buffer = bufnr,
     group = group,
   })
   a.nvim_create_autocmd({ "TextChangedI" }, {
     callback = require("simple_indent").refresh_lines,
-    buffer = a.nvim_get_current_buf(),
+    buffer = bufnr,
     group = group,
   })
 end
