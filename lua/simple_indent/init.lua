@@ -1,10 +1,10 @@
-local indent = { '|', 'IndentChar' }
-local blank = { ' ', 'IndentChar' }
+local indent = { "|", "IndentChar" }
+local blank = { " ", "IndentChar" }
 local ns = vim.api.nvim_create_namespace("indent_guides")
 local fn = vim.fn
 local clear = vim.api.nvim_buf_clear_namespace
 local M = {}
-local ex = {'', 'help', 'fzf', 'FTerm', 'NvimTree'}
+local ex = { "", "help", "fzf", "FTerm", "NvimTree" }
 local refresh_timer = nil
 local max_line = 10000
 vim.g.simple_indent_last_line = 0
@@ -12,7 +12,7 @@ vim.g.simple_indent_last_line = 0
 local function init_hi()
   local hi = fn.synIDtrans(fn.hlID("Whitespace"))
   local fg = fn.synIDattr(hi, "fg", "gui")
-  local cmd = string.format('hi IndentChar guifg=%s gui=nocombine', fg)
+  local cmd = string.format("hi IndentChar guifg=%s gui=nocombine", fg)
   vim.cmd(cmd)
 end
 
@@ -24,16 +24,14 @@ local function get_indent_size()
 end
 
 local function mark(row, col, guides)
-  vim.api.nvim_buf_set_extmark(0, ns, row, col,
-    { virt_text = guides, virt_text_pos = 'overlay', hl_mode = 'combine' }
-  )
+  vim.api.nvim_buf_set_extmark(0, ns, row, col, { virt_text = guides, virt_text_pos = "overlay", hl_mode = "combine" })
 end
 
 local function gen_guides(len)
   local g = {}
   g[1] = indent
   for i = 1, len - 1, 1 do
-    g[i+1] = blank
+    g[i + 1] = blank
   end
   return g
 end
@@ -45,13 +43,13 @@ end
 local function get_lead_tab(str)
   local lead = 0
   for i = 1, #str, 1 do
-    if get_char(str, i) == '\t' then
+    if get_char(str, i) == "\t" then
       lead = lead + 1
     else
       break
     end
   end
-  if get_char(str, lead + 1) ~= ' ' then
+  if get_char(str, lead + 1) ~= " " then
     lead = -1
   end
   return lead
@@ -67,7 +65,7 @@ local function create_mark(idt_size, ln, line, guide)
     return
   else
     for i = 1, idt_size, 1 do
-      if get_char(line, i) ~= ' ' then
+      if get_char(line, i) ~= " " then
         return
       end
     end
@@ -79,7 +77,7 @@ local function create_mark(idt_size, ln, line, guide)
 
   for i = st, #line, 1 do
     local s = get_char(line, i)
-    if s == ' ' then
+    if s == " " then
       cnt = cnt + 1
       if cnt == idt_size then
         guides = fn.extend(guides, guide)
@@ -100,13 +98,13 @@ local function create_mark(idt_size, ln, line, guide)
 end
 
 local function create_line_mark(st, ed)
-  coroutine.wrap(function ()
+  coroutine.wrap(function()
     local lines = vim.api.nvim_buf_get_lines(0, st, ed, false)
     local idt_size = get_indent_size()
     local guide = gen_guides(idt_size)
     for i, line in pairs(lines) do
       if #line ~= 0 then
-        create_mark(idt_size, i+st, line, guide)
+        create_mark(idt_size, i + st, line, guide)
       end
     end
   end)()
@@ -117,7 +115,7 @@ local function enable_indent_guides_()
 end
 
 local function disabled()
-  if fn.index(ex, vim.bo.filetype) ~= -1 or fn.line('$') > max_line then
+  if fn.index(ex, vim.bo.filetype) ~= -1 or fn.line("$") > max_line then
     return true
   end
   return false
@@ -128,18 +126,24 @@ function M.enable()
     return
   end
   enable_indent_guides_()
-  vim.cmd[[
-    augroup simple_indent_buffer
-        au! * <buffer>
-        au TextChanged <buffer> lua require('simple_indent').refresh()
-        au TextChangedI <buffer> lua require('simple_indent').refresh_lines()
-    augroup END
-  ]]
+  local group = "simple_indent"
+  local a = vim.api
+  a.nvim_create_autocmd({ "TextChanged" }, {
+    callback = require("simple_indent").refresh,
+    buffer = a.nvim_get_current_buf(),
+    group = group,
+  })
+  a.nvim_create_autocmd({ "TextChangedI" }, {
+    callback = require("simple_indent").refresh_lines,
+    buffer = a.nvim_get_current_buf(),
+    group = group,
+  })
 end
 
 function M.disable()
   clear(0, ns, 0, -1)
-  vim.cmd[[augroup! simple_indent]]
+  vim.api.nvim_del_augroup_by_name("simple_indent")
+  vim.api.nvim_del_augroup_by_name("simple_indent_buffer")
 end
 
 function M.refresh()
@@ -157,8 +161,8 @@ function M.refresh_lines()
     vim.loop.timer_stop(refresh_timer)
     refresh_timer = nil
   end
-  refresh_timer = vim.defer_fn(function ()
-    local ln = fn.line('.')
+  refresh_timer = vim.defer_fn(function()
+    local ln = fn.line(".")
     local start = ln - 1
     local last_line = vim.g.simple_indent_last_line
     if last_line ~= 0 then
