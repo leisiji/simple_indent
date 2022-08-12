@@ -1,22 +1,21 @@
 local a = vim.api
 local indent_hl = "IndentChar"
-local indent = { "|", indent_hl }
+local indent = { "│", indent_hl }
 local blank = { " ", indent_hl }
 local ns = a.nvim_create_namespace("indent_guides")
 local fn = vim.fn
 local clear = vim.api.nvim_buf_clear_namespace
 local M = {}
-local ex = { "", "help", "fzf", "FTerm", "NvimTree" }
+local ex = { "", "help", "fzf", "FTerm", "NvimTree", "terminal", "nofile", "quickfix", "prompt" }
 local refresh_timer = nil
 local max_line = 10000
 vim.g.simple_indent_last_line = 0
 
 local function init_hi()
-  local id = a.nvim_get_hl_id_by_name("Whitespace")
+  local id = a.nvim_get_hl_id_by_name("Comment")
   local hi = a.nvim_get_hl_by_id(id, true)
-  local bg = hi.background or ""
   local fg = hi.foreground or ""
-  a.nvim_set_hl(0, indent_hl, { bg = bg, fg = fg })
+  a.nvim_set_hl(0, indent_hl, { fg = fg, nocombine = true })
 end
 
 local function get_indent_size()
@@ -118,10 +117,16 @@ local function enable_indent_guides_()
 end
 
 local function disabled()
+  local buf_ft = vim.bo.filetype
+  for _, ft in ipairs(ex) do
+    if buf_ft == ft then
+      return true
+    end
+  end
+
   local b = a.nvim_get_current_buf()
   local w = a.nvim_get_current_win()
-  return fn.index(ex, vim.bo.filetype) ~= -1
-    or a.nvim_buf_line_count(b) > max_line
+  return a.nvim_buf_line_count(b) > max_line
     or not a.nvim_win_get_config(w).focusable
 end
 
