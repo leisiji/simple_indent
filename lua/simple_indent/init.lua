@@ -1,6 +1,8 @@
-local indent = { "|", "IndentChar" }
-local blank = { " ", "IndentChar" }
-local ns = vim.api.nvim_create_namespace("indent_guides")
+local a = vim.api
+local indent_hl = "IndentChar"
+local indent = { "|", indent_hl }
+local blank = { " ", indent_hl }
+local ns = a.nvim_create_namespace("indent_guides")
 local fn = vim.fn
 local clear = vim.api.nvim_buf_clear_namespace
 local M = {}
@@ -10,10 +12,11 @@ local max_line = 10000
 vim.g.simple_indent_last_line = 0
 
 local function init_hi()
-  local hi = fn.synIDtrans(fn.hlID("Whitespace"))
-  local fg = fn.synIDattr(hi, "fg", "gui")
-  local cmd = string.format("hi IndentChar guifg=%s gui=nocombine", fg)
-  vim.cmd(cmd)
+  local id = a.nvim_get_hl_id_by_name("Whitespace")
+  local hi = a.nvim_get_hl_by_id(id, true)
+  local bg = hi.background or ""
+  local fg = hi.foreground or ""
+  a.nvim_set_hl(0, indent_hl, { bg = bg, fg = fg })
 end
 
 local function get_indent_size()
@@ -99,7 +102,7 @@ end
 
 local function create_line_mark(st, ed)
   coroutine.wrap(function()
-    local lines = vim.api.nvim_buf_get_lines(0, st, ed, false)
+    local lines = a.nvim_buf_get_lines(0, st, ed, false)
     local idt_size = get_indent_size()
     local guide = gen_guides(idt_size)
     for i, line in pairs(lines) do
@@ -115,21 +118,21 @@ local function enable_indent_guides_()
 end
 
 local function disabled()
-  if fn.index(ex, vim.bo.filetype) ~= -1 or fn.line("$") > max_line then
-    return true
-  end
-  return false
+  local b = a.nvim_get_current_buf()
+  local w = a.nvim_get_current_win()
+  return fn.index(ex, vim.bo.filetype) ~= -1
+    or a.nvim_buf_line_count(b) > max_line
+    or not a.nvim_win_get_config(w).focusable
 end
 
 function M.enable()
   if disabled() then
     return
   end
+  local bufnr = a.nvim_get_current_buf()
   enable_indent_guides_()
   local group = "simple_indent_buffer"
-  local a = vim.api
-  local bufnr = a.nvim_get_current_buf()
-  a.nvim_clear_autocmds({group = group, buffer = bufnr })
+  a.nvim_clear_autocmds({ group = group, buffer = bufnr })
   a.nvim_create_autocmd({ "TextChanged" }, {
     callback = require("simple_indent").refresh,
     buffer = bufnr,
